@@ -99,7 +99,7 @@ async function saveArt(e){
       if(fileError) throw fileError;
 
       const {error:docError}=await supabaseClient
-        .from('artwork_document')
+        .from('artwork_documents')
         .insert({
           artwork_id:artworkId,
           file_name:file.name,
