@@ -43,7 +43,8 @@ async function saveArt(e){
 
     // Upload artwork photo
     let imageUrl='';
-    const photoFile=$('artphoto').files[0];
+    const photoInput=$('artphoto');
+    const photoFile=photoInput?.files?.[0];
 
     if(photoFile){
       const photoPath=`${artworkId}/${photoFile.name}`;
@@ -64,7 +65,7 @@ async function saveArt(e){
     }
 
     // Save artwork information
-    const {error:artError}=await supabaseClient
+    const {data:artworkData,error:artError}=await supabaseClient
       .from('artworks')
       .insert({
         id:artworkId,
@@ -72,79 +73,19 @@ async function saveArt(e){
         artist:$('artist').value,
         year:$('year').value,
         medium:$('medium').value,
-        width:null,
         height:null,
-        edition:$('edition').value,
-        value:+$('value').value||0,
+        width:null,
         price:+$('price').value||0,
+        description:$('notes').value,
+        image_url:imageUrl,
+        edition:$('edition').value,
         collector_id:$('collector').value||null,
         status:$('status').value,
         provenance:$('provenance').value,
-        notes:$('notes').value,
-        image_url:imageUrl
-      });
-
-    if(artError)throw artError;
-
-    // Upload multiple documentation files
-    const documentFiles=$('certificate').files;
-
-    for(const file of documentFiles){
-      const documentPath=`${artworkId}/${Date.now()}-${file.name}`;
-
-      const {error:fileError}=await supabaseClient
-        .storage
-        .from('artwork-document')
-        .upload(documentPath,file);
-
-      if(fileError)throw fileError;
-
-      const {error:docError}=await supabaseClient
-        .from('artwork_documents')
-        .insert({
-          artwork_id:artworkId,
-          file_name:file.name,
-          file_path:documentPath,
-          file_type:file.type,
-          document_type:'Certificate / Documentation'
-        });
-
-      if(docError)throw docError;
-    }
-
-    alert('Artwork saved successfully!');
-
-    e.target.reset();
-    img='';
-    $('prev').style.display='none';
-    closeM('artModal');
-
-    // Keep the existing local catalogue updated for now
-    db.artworks.push({
-      id:artworkId,
-      image:imageUrl,
-      title:$('title').value,
-      artist:$('artist').value,
-      year:$('year').value,
-      medium:$('medium').value,
-      size:$('size').value,
-      edition:$('edition').value,
-      value:+$('value').value||0,
-      price:+$('price').value||0,
-      collectorId:$('collector').value,
-      status:$('status').value,
-      provenance:$('provenance').value,
-      certificate:'',
-      notes:$('notes').value
-    });
-
-    persist();
-
-  }catch(error){
-    console.error(error);
-    alert('Could not save artwork: '+error.message);
-  }
-}
+        notes:$('notes').value
+      })
+      .select()
+      .
 function card(a){return `<div class='card' onclick='view(${a.id})'><div class='photo'>${a.image?`<img src='${a.image}'>`:'Artwork photo'}</div><div class='body'><h3>${esc(a.title)}</h3><div class='meta'>${esc(a.artist||'Artist —')} · ${esc(a.year||'Year —')}</div><div class='meta'>${esc(a.medium||'Medium —')} · ${esc(a.size||'Size —')}</div><div style='margin-top:8px'><b>${money(a.value)}</b> · <span class='meta'>${esc(a.status)}</span></div></div></div>`}
 function render(){let q=($('search')?.value||'').toLowerCase(),f=$('filter')?.value||'',arr=db.artworks.filter(a=>(!f||a.status===f)&&(`${a.title} ${a.artist} ${cname(a.collectorId)}`.toLowerCase().includes(q)));$('arts').innerHTML=arr.map(card).join('')||'<div class="empty">No artworks yet. Add your first painting.</div>';let val=db.artworks.reduce((s,a)=>s+a.value,0),names=new Set(db.artworks.map(a=>a.artist).filter(Boolean));$('nArt').textContent=db.artworks.length;$('nCol').textContent=db.collectors.length;$('nArtist').textContent=names.size;$('nVal').textContent=money(val);$('rWorks').textContent=db.artworks.length;$('rValue').textContent=money(val);$('rSold').textContent=db.artworks.filter(a=>a.status==='Sold').length;$('rAvail').textContent=db.artworks.filter(a=>a.status==='Available').length;$('recent').innerHTML=db.artworks.slice(-4).reverse().map(card).join('')||'<div class="empty">Your recent artworks will appear here.</div>';$('cols').innerHTML=db.collectors.map(c=>{let a=db.artworks.filter(x=>String(x.collectorId)===String(c.id));return `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.email||c.phone||'—')}</td><td>${a.length}</td><td>${money(a.reduce((s,x)=>s+x.value,0))}</td></tr>`}).join('')||'<tr><td colspan=4 class=empty>No collectors yet.</td></tr>';let m={};db.artworks.forEach(a=>{let n=a.artist||'Unknown';m[n]??={w:0,v:0};m[n].w++;m[n].v+=a.value});$('artists').innerHTML=Object.entries(m).map(([n,x])=>`<tr><td>${esc(n)}</td><td>${x.w}</td><td>${money(x.v)}</td></tr>`).join('')||'<tr><td colspan=3 class=empty>No artists yet.</td></tr>'}
 function view(id){let a=db.artworks.find(x=>x.id===id);$('dt').textContent=a.title;$('detail').innerHTML=`<div class='detail'><div class='hero'>${a.image?`<img src='${a.image}'>`:'Artwork photo'}</div><div class='facts'>${[['Artist',a.artist],['Year',a.year],['Medium',a.medium],['Dimensions',a.size],['Edition',a.edition],['Collector',cname(a.collectorId)],['Status',a.status],['Valuation',money(a.value)],['Purchase price',money(a.price)],['Certificate',a.certificate],['Provenance',a.provenance],['Notes',a.notes]].map(x=>`<div class='fact'><span>${x[0]}</span><b>${esc(x[1]||'—')}</b></div>`).join('')}</div></div>`;$('detailModal').classList.add('show')}
