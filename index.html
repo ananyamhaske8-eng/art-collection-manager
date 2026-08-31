@@ -96,7 +96,7 @@ async function saveArt(e){
         .from('artwork-documents')
         .upload(documentPath,file,{upsert:true});
 
-      if(fileError) throw new error(DOCUMENT STORAGE ERROR:'+fileError.message);
+      if(fileError) throw new error('DOCUMENT STORAGE ERROR:'+fileError.message);
 
       const {error:docError}=await supabaseClient
         .from('artwork_documents')
@@ -108,7 +108,7 @@ async function saveArt(e){
           document_type:'Certificate / Documentation'
         });
 
-      if(docError) throw new Error(DOCUMENT DATABASE ERROR:'+docError.message);
+      if(docError) throw new Error('DOCUMENT DATABASE ERROR:'+docError.message);
     }
 
     alert('Artwork saved successfully!');
