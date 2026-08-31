@@ -102,7 +102,97 @@ async function saveArt(e){
 }
 function card(a){return `<div class='card' onclick='view(${a.id})'><div class='photo'>${a.image?`<img src='${a.image}'>`:'Artwork photo'}</div><div class='body'><h3>${esc(a.title)}</h3><div class='meta'>${esc(a.artist||'Artist —')} · ${esc(a.year||'Year —')}</div><div class='meta'>${esc(a.medium||'Medium —')} · ${esc(a.size||'Size —')}</div><div style='margin-top:8px'><b>${money(a.value)}</b> · <span class='meta'>${esc(a.status)}</span></div></div></div>`}
 function render(){let q=($('search')?.value||'').toLowerCase(),f=$('filter')?.value||'',arr=db.artworks.filter(a=>(!f||a.status===f)&&(`${a.title} ${a.artist} ${cname(a.collectorId)}`.toLowerCase().includes(q)));$('arts').innerHTML=arr.map(card).join('')||'<div class="empty">No artworks yet. Add your first painting.</div>';let val=db.artworks.reduce((s,a)=>s+a.value,0),names=new Set(db.artworks.map(a=>a.artist).filter(Boolean));$('nArt').textContent=db.artworks.length;$('nCol').textContent=db.collectors.length;$('nArtist').textContent=names.size;$('nVal').textContent=money(val);$('rWorks').textContent=db.artworks.length;$('rValue').textContent=money(val);$('rSold').textContent=db.artworks.filter(a=>a.status==='Sold').length;$('rAvail').textContent=db.artworks.filter(a=>a.status==='Available').length;$('recent').innerHTML=db.artworks.slice(-4).reverse().map(card).join('')||'<div class="empty">Your recent artworks will appear here.</div>';$('cols').innerHTML=db.collectors.map(c=>{let a=db.artworks.filter(x=>String(x.collectorId)===String(c.id));return `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.email||c.phone||'—')}</td><td>${a.length}</td><td>${money(a.reduce((s,x)=>s+x.value,0))}</td></tr>`}).join('')||'<tr><td colspan=4 class=empty>No collectors yet.</td></tr>';let m={};db.artworks.forEach(a=>{let n=a.artist||'Unknown';m[n]??={w:0,v:0};m[n].w++;m[n].v+=a.value});$('artists').innerHTML=Object.entries(m).map(([n,x])=>`<tr><td>${esc(n)}</td><td>${x.w}</td><td>${money(x.v)}</td></tr>`).join('')||'<tr><td colspan=3 class=empty>No artists yet.</td></tr>'}
-function view(id){let a=db.artworks.find(x=>x.id===id);$('dt').textContent=a.title;$('detail').innerHTML=`<div class='detail'><div class='hero'>${a.image?`<img src='${a.image}'>`:'Artwork photo'}</div><div class='facts'>${[['Artist',a.artist],['Year',a.year],['Medium',a.medium],['Dimensions',a.size],['Edition',a.edition],['Collector',cname(a.collectorId)],['Status',a.status],['Valuation',money(a.value)],['Purchase price',money(a.price)],['Certificate',a.certificate],['Provenance',a.provenance],['Notes',a.notes]].map(x=>`<div class='fact'><span>${x[0]}</span><b>${esc(x[1]||'—')}</b></div>`).join('')}</div></div>`;$('detailModal').classList.add('show')}
+async function view(id){
+  const a = db.artworks.find(x => String(x.id) === String(id));
+
+  if(!a) return;
+
+  $('dt').textContent = a.title;
+
+  $('detail').innerHTML = `
+    <div class="detail">
+      <div class="hero">
+        ${a.image_url || a.image
+          ? `<img src="${a.image_url || a.image}">`
+          : 'Artwork photo'}
+      </div>
+
+      <div>
+        <div class="facts">
+          ${[
+            ['Artist',a.artist],
+            ['Year',a.year],
+            ['Medium',a.medium],
+            ['Dimensions',a.size],
+            ['Edition',a.edition],
+            ['Collector',cname(a.collectorId)],
+            ['Status',a.status],
+            ['Valuation',money(a.value)],
+            ['Purchase price',money(a.price)],
+            ['Provenance',a.provenance],
+            ['Notes',a.notes]
+          ].map(x => `
+            <div class="fact">
+              <span>${x[0]}</span>
+              <b>${esc(x[1] || '—')}</b>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="margin-top:25px">
+          <h3 style="font:20px Georgia">Artwork Documents</h3>
+          <div id="documents">Loading...</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $('detailModal').classList.add('show');
+
+  const {data:documents,error} = await supabaseClient
+    .from('artwork_documents')
+    .select('*')
+    .eq('artwork_id',id);
+
+  if(error){
+    console.error(error);
+    $('documents').innerHTML =
+      '<span style="color:#999">Unable to load documents</span>';
+    return;
+  }
+
+  if(!documents || documents.length === 0){
+    $('documents').innerHTML =
+      '<span style="color:#999">No documents uploaded</span>';
+    return;
+  }
+
+  $('documents').innerHTML = documents.map(doc => {
+
+    const {data:urlData} = supabaseClient
+      .storage
+      .from('artwork-documents')
+      .getPublicUrl(doc.file_path);
+
+    return `
+      <div style="
+        margin-top:10px;
+        padding:12px;
+        background:#fff;
+        border:1px solid #e5e1d8;
+        border-radius:7px;
+      ">
+        📄 ${esc(doc.file_name)}
+        <br>
+        <a href="${urlData.publicUrl}"
+           target="_blank"
+           style="display:inline-block;margin-top:7px">
+          Open document
+        </a>
+      </div>
+    `;
+  }).join('');
+}
 function exportDB(){let b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='art-catalogue-backup.json';a.click()}function importDB(e){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);db.artworks=x.artworks||[];db.collectors=x.collectors||[];persist();alert('Imported successfully')}catch{alert('Invalid backup')}};r.readAsText(e.target.files[0])}render();
 
 </script></body></html>
