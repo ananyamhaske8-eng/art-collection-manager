@@ -22,177 +22,894 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_KEY
 );
 
-const K='art_manager_v2',db=JSON.parse(localStorage.getItem(K)||'{"artworks":[],"collectors":[]}');let img='';const $=x=>document.getElementById(x),money=n=>'₹'+Number(n||0).toLocaleString('en-IN'),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),cname=id=>db.collectors.find(c=>String(c.id)===String(id))?.name||'Unassigned';
-function persist(){localStorage.setItem(K,JSON.stringify(db));render()}function show(id,b){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b?.classList.add('active');render()}function openArt(){$('collector').innerHTML='<option value="">Unassigned</option>'+db.collectors.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');$('artModal').classList.add('show')}function openCol(){$('colModal').classList.add('show')}function closeM(x){$(x).classList.remove('show')}async function preview(e){
-  const file=e.target.files[0];
-  if(!file)return;
-  const r=new FileReader();
-  r.onload=()=>{
-    img=r.result;
-    $('prev').src=img;
-    $('prev').style.display='block';
+const K = 'art_manager_v2';
+
+const db = JSON.parse(
+  localStorage.getItem(K) || '{"artworks":[],"collectors":[]}'
+);
+
+let img = '';
+
+const $ = x => document.getElementById(x);
+
+const money = n =>
+  '₹' + Number(n || 0).toLocaleString('en-IN');
+
+const esc = s =>
+  String(s ?? '').replace(/[&<>"']/g, m => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[m]));
+
+const cname = id =>
+  db.collectors.find(c => String(c.id) === String(id))?.name || 'Unassigned';
+
+
+function persist(){
+  localStorage.setItem(K, JSON.stringify(db));
+  render();
+}
+
+
+function show(id,b){
+  document.querySelectorAll('.page')
+    .forEach(x => x.classList.remove('active'));
+
+  $(id).classList.add('active');
+
+  document.querySelectorAll('nav button')
+    .forEach(x => x.classList.remove('active'));
+
+  b?.classList.add('active');
+
+  render();
+}
+
+
+function openArt(){
+
+  $('collector').innerHTML =
+    '<option value="">Unassigned</option>' +
+    db.collectors.map(c =>
+      `<option value="${c.id}">${esc(c.name)}</option>`
+    ).join('');
+
+  $('artModal').classList.add('show');
+}
+
+
+function openCol(){
+  $('colModal').classList.add('show');
+}
+
+
+function closeM(x){
+  $(x).classList.remove('show');
+}
+
+
+function preview(e){
+
+  const file = e.target.files[0];
+
+  if(!file) return;
+
+  const r = new FileReader();
+
+  r.onload = () => {
+    img = r.result;
+    $('prev').src = img;
+    $('prev').style.display = 'block';
   };
+
   r.readAsDataURL(file);
 }
 
+
+/* =========================
+   SAVE ARTWORK
+========================= */
+
 async function saveArt(e){
+
   e.preventDefault();
 
   try{
-    const artworkId=Date.now();
 
-    let imageUrl='';
-    const photoInput=$('photo');
-    const photoFile=photoInput?.files?.[0];
+    const artworkId = Date.now();
+
+    /* -------------------------
+       1. UPLOAD ARTWORK PHOTO
+    ------------------------- */
+
+    let imageUrl = '';
+
+    const photoInput = $('photo');
+    const photoFile = photoInput?.files?.[0];
 
     if(photoFile){
-      const photoPath=`${artworkId}/${photoFile.name}`;
 
-      const {error:photoError}=await supabaseClient
-        .storage
-        .from('artworks')
-        .upload(photoPath,photoFile,{upsert:true});
+      const photoPath =
+        `${artworkId}/${photoFile.name}`;
 
-      if(photoError) throw photoError;
+      const { error: photoError } =
+        await supabaseClient
+          .storage
+          .from('artworks')
+          .upload(
+            photoPath,
+            photoFile,
+            { upsert:true }
+          );
 
-      const {data:photoData}=supabaseClient
-        .storage
-        .from('artworks')
-        .getPublicUrl(photoPath);
+      if(photoError){
 
-      imageUrl=photoData.publicUrl;
+        console.error(
+          'PHOTO UPLOAD ERROR:',
+          photoError
+        );
+
+        throw new Error(
+          'Photo upload error: ' +
+          photoError.message
+        );
+      }
+
+      const { data: photoData } =
+        supabaseClient
+          .storage
+          .from('artworks')
+          .getPublicUrl(photoPath);
+
+      imageUrl =
+        photoData?.publicUrl || '';
     }
 
-    const {error:artError}=await supabaseClient
-      .from('artworks')
-      .insert({
-        id:artworkId,
-        title:$('title').value,
-        artist:$('artist').value,
-        year:$('year').value,
-        medium:$('medium').value,
-        height:null,
-        width:null,
-        price:+$('price').value||0,
-        description:$('notes').value,
-        image_url:imageUrl,
-        edition:$('edition').value,
-        collector_id:$('collector').value||null,
-        status:$('status').value,
-        provenance:$('provenance').value,
-        notes:$('notes').value
-      });
 
-    if(artError) throw artError;
+    /* -------------------------
+       2. SAVE ARTWORK DATABASE
+    ------------------------- */
 
-    
-    alert('Artwork saved successfully!');
+    const { error: artError } =
+      await supabaseClient
+        .from('artworks')
+        .insert({
+
+          id: artworkId,
+
+          title: $('title').value,
+
+          artist: $('artist').value,
+
+          year: $('year').value,
+
+          medium: $('medium').value,
+
+          height: null,
+
+          width: null,
+
+          price:
+            Number($('price').value) || 0,
+
+          description:
+            $('notes').value,
+
+          image_url:
+            imageUrl,
+
+          edition:
+            $('edition').value,
+
+          collector_id:
+            $('collector').value || null,
+
+          status:
+            $('status').value,
+
+          provenance:
+            $('provenance').value,
+
+          notes:
+            $('notes').value
+        });
+
+
+    if(artError){
+
+      console.error(
+        'ARTWORK DATABASE ERROR:',
+        artError
+      );
+
+      throw new Error(
+        'Artwork database error: ' +
+        artError.message
+      );
+    }
+
+
+    /* -------------------------
+       3. UPLOAD DOCUMENTS
+    ------------------------- */
+
+    const certificateInput =
+      $('certificate');
+
+    const documentFiles =
+      certificateInput?.files || [];
+
+
+    for(const file of documentFiles){
+
+      const documentPath =
+        `${artworkId}/${Date.now()}-${file.name}`;
+
+
+      console.log(
+        'Uploading document:',
+        documentPath
+      );
+
+
+      /* Upload document to Storage */
+
+      const { error: fileError } =
+        await supabaseClient
+          .storage
+          .from('artwork-documents')
+          .upload(
+            documentPath,
+            file,
+            { upsert:true }
+          );
+
+
+      console.log(
+        'DOCUMENT UPLOAD RESULT:',
+        fileError
+      );
+
+
+      if(fileError){
+
+        console.error(
+          'DOCUMENT STORAGE ERROR:',
+          fileError
+        );
+
+        throw new Error(
+          'Document storage error: ' +
+          fileError.message
+        );
+      }
+
+
+      /* Save document information */
+
+      const { error: docError } =
+        await supabaseClient
+          .from('artwork_documents')
+          .insert({
+
+            artwork_id:
+              artworkId,
+
+            file_name:
+              file.name,
+
+            file_path:
+              documentPath,
+
+            file_type:
+              file.type,
+
+            document_type:
+              'Certificate / Documentation'
+          });
+
+
+      console.log(
+        'DOCUMENT DATABASE RESULT:',
+        docError
+      );
+
+
+      if(docError){
+
+        console.error(
+          'DOCUMENT DATABASE ERROR:',
+          docError
+        );
+
+        throw new Error(
+          'Document database error: ' +
+          docError.message
+        );
+      }
+
+    }
+
+
+    /* -------------------------
+       4. ALSO SAVE LOCALLY
+    ------------------------- */
+
+    db.artworks.push({
+
+      id: artworkId,
+
+      title: $('title').value,
+
+      artist: $('artist').value,
+
+      year: $('year').value,
+
+      medium: $('medium').value,
+
+      size: $('size').value,
+
+      edition: $('edition').value,
+
+      value:
+        Number($('value').value) || 0,
+
+      price:
+        Number($('price').value) || 0,
+
+      collectorId:
+        $('collector').value || null,
+
+      status:
+        $('status').value,
+
+      provenance:
+        $('provenance').value,
+
+      notes:
+        $('notes').value,
+
+      image:
+        imageUrl,
+
+      image_url:
+        imageUrl
+
+    });
+
+
+    persist();
+
+
+    alert(
+      'Artwork and documents saved successfully!'
+    );
+
 
     e.target.reset();
-    img='';
-    $('prev').style.display='none';
+
+    img = '';
+
+    $('prev').style.display = 'none';
+
     closeM('artModal');
 
     render();
 
+
   }catch(error){
-    console.error(error);
-    alert('Could not save artwork: '+error.message);
+
+    console.error(
+      'SAVE ARTWORK ERROR:',
+      error
+    );
+
+    alert(
+      'Could not save artwork.\n\n' +
+      error.message
+    );
   }
 }
-function card(a){return `<div class='card' onclick='view(${a.id})'><div class='photo'>${a.image?`<img src='${a.image}'>`:'Artwork photo'}</div><div class='body'><h3>${esc(a.title)}</h3><div class='meta'>${esc(a.artist||'Artist —')} · ${esc(a.year||'Year —')}</div><div class='meta'>${esc(a.medium||'Medium —')} · ${esc(a.size||'Size —')}</div><div style='margin-top:8px'><b>${money(a.value)}</b> · <span class='meta'>${esc(a.status)}</span></div></div></div>`}
-function render(){let q=($('search')?.value||'').toLowerCase(),f=$('filter')?.value||'',arr=db.artworks.filter(a=>(!f||a.status===f)&&(`${a.title} ${a.artist} ${cname(a.collectorId)}`.toLowerCase().includes(q)));$('arts').innerHTML=arr.map(card).join('')||'<div class="empty">No artworks yet. Add your first painting.</div>';let val=db.artworks.reduce((s,a)=>s+a.value,0),names=new Set(db.artworks.map(a=>a.artist).filter(Boolean));$('nArt').textContent=db.artworks.length;$('nCol').textContent=db.collectors.length;$('nArtist').textContent=names.size;$('nVal').textContent=money(val);$('rWorks').textContent=db.artworks.length;$('rValue').textContent=money(val);$('rSold').textContent=db.artworks.filter(a=>a.status==='Sold').length;$('rAvail').textContent=db.artworks.filter(a=>a.status==='Available').length;$('recent').innerHTML=db.artworks.slice(-4).reverse().map(card).join('')||'<div class="empty">Your recent artworks will appear here.</div>';$('cols').innerHTML=db.collectors.map(c=>{let a=db.artworks.filter(x=>String(x.collectorId)===String(c.id));return `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.email||c.phone||'—')}</td><td>${a.length}</td><td>${money(a.reduce((s,x)=>s+x.value,0))}</td></tr>`}).join('')||'<tr><td colspan=4 class=empty>No collectors yet.</td></tr>';let m={};db.artworks.forEach(a=>{let n=a.artist||'Unknown';m[n]??={w:0,v:0};m[n].w++;m[n].v+=a.value});$('artists').innerHTML=Object.entries(m).map(([n,x])=>`<tr><td>${esc(n)}</td><td>${x.w}</td><td>${money(x.v)}</td></tr>`).join('')||'<tr><td colspan=3 class=empty>No artists yet.</td></tr>'}
+
+
+/* =========================
+   ARTWORK CARD
+========================= */
+
+function card(a){
+
+  return `
+    <div class="card"
+         onclick="view(${a.id})">
+
+      <div class="photo">
+
+        ${
+          a.image_url || a.image
+          ? `<img src="${a.image_url || a.image}">`
+          : 'Artwork photo'
+        }
+
+      </div>
+
+      <div class="body">
+
+        <h3>
+          ${esc(a.title)}
+        </h3>
+
+        <div class="meta">
+          ${esc(a.artist || 'Artist —')}
+          ·
+          ${esc(a.year || 'Year —')}
+        </div>
+
+        <div class="meta">
+          ${esc(a.medium || 'Medium —')}
+          ·
+          ${esc(a.size || 'Size —')}
+        </div>
+
+        <div style="margin-top:8px">
+
+          <b>
+            ${money(a.value)}
+          </b>
+
+          ·
+
+          <span class="meta">
+            ${esc(a.status)}
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* =========================
+   RENDER
+========================= */
+
+function render(){
+
+  let q =
+    ($('search')?.value || '')
+      .toLowerCase();
+
+  let f =
+    $('filter')?.value || '';
+
+
+  let arr =
+    db.artworks.filter(a =>
+
+      (!f || a.status === f) &&
+
+      (
+        `${a.title} ${a.artist} ${cname(a.collectorId)}`
+          .toLowerCase()
+          .includes(q)
+      )
+    );
+
+
+  $('arts').innerHTML =
+    arr.map(card).join('') ||
+    '<div class="empty">No artworks yet. Add your first painting.</div>';
+
+
+  let val =
+    db.artworks.reduce(
+      (s,a) => s + Number(a.value || 0),
+      0
+    );
+
+
+  let names =
+    new Set(
+      db.artworks
+        .map(a => a.artist)
+        .filter(Boolean)
+    );
+
+
+  $('nArt').textContent =
+    db.artworks.length;
+
+  $('nCol').textContent =
+    db.collectors.length;
+
+  $('nArtist').textContent =
+    names.size;
+
+  $('nVal').textContent =
+    money(val);
+
+  $('rWorks').textContent =
+    db.artworks.length;
+
+  $('rValue').textContent =
+    money(val);
+
+  $('rSold').textContent =
+    db.artworks.filter(
+      a => a.status === 'Sold'
+    ).length;
+
+  $('rAvail').textContent =
+    db.artworks.filter(
+      a => a.status === 'Available'
+    ).length;
+
+
+  $('recent').innerHTML =
+    db.artworks
+      .slice(-4)
+      .reverse()
+      .map(card)
+      .join('') ||
+
+    '<div class="empty">Your recent artworks will appear here.</div>';
+
+
+  $('cols').innerHTML =
+    db.collectors.map(c => {
+
+      let a =
+        db.artworks.filter(
+          x =>
+            String(x.collectorId) ===
+            String(c.id)
+        );
+
+      return `
+        <tr>
+
+          <td>
+            <b>
+              ${esc(c.name)}
+            </b>
+          </td>
+
+          <td>
+            ${esc(c.email || c.phone || '—')}
+          </td>
+
+          <td>
+            ${a.length}
+          </td>
+
+          <td>
+            ${money(
+              a.reduce(
+                (s,x) =>
+                  s + Number(x.value || 0),
+                0
+              )
+            )}
+          </td>
+
+        </tr>
+      `;
+
+    }).join('') ||
+
+    '<tr><td colspan="4" class="empty">No collectors yet.</td></tr>';
+
+
+  let m = {};
+
+  db.artworks.forEach(a => {
+
+    let n =
+      a.artist || 'Unknown';
+
+    m[n] ??= {
+      w:0,
+      v:0
+    };
+
+    m[n].w++;
+
+    m[n].v +=
+      Number(a.value || 0);
+
+  });
+
+
+  $('artists').innerHTML =
+    Object.entries(m)
+      .map(([n,x]) => `
+
+        <tr>
+
+          <td>
+            ${esc(n)}
+          </td>
+
+          <td>
+            ${x.w}
+          </td>
+
+          <td>
+            ${money(x.v)}
+          </td>
+
+        </tr>
+
+      `)
+      .join('') ||
+
+    '<tr><td colspan="3" class="empty">No artists yet.</td></tr>';
+}
+
+
+/* =========================
+   VIEW ARTWORK + DOCUMENTS
+========================= */
+
 async function view(id){
-  const a = db.artworks.find(x => String(x.id) === String(id));
+
+  const a =
+    db.artworks.find(
+      x =>
+        String(x.id) === String(id)
+    );
 
   if(!a) return;
 
-  $('dt').textContent = a.title;
+
+  $('dt').textContent =
+    a.title;
+
 
   $('detail').innerHTML = `
+
     <div class="detail">
+
       <div class="hero">
-        ${a.image_url || a.image
+
+        ${
+          a.image_url || a.image
           ? `<img src="${a.image_url || a.image}">`
-          : 'Artwork photo'}
+          : 'Artwork photo'
+        }
+
       </div>
+
 
       <div>
+
         <div class="facts">
-          ${[
-            ['Artist',a.artist],
-            ['Year',a.year],
-            ['Medium',a.medium],
-            ['Dimensions',a.size],
-            ['Edition',a.edition],
-            ['Collector',cname(a.collectorId)],
-            ['Status',a.status],
-            ['Valuation',money(a.value)],
-            ['Purchase price',money(a.price)],
-            ['Provenance',a.provenance],
-            ['Notes',a.notes]
-          ].map(x => `
-            <div class="fact">
-              <span>${x[0]}</span>
-              <b>${esc(x[1] || '—')}</b>
-            </div>
-          `).join('')}
+
+          ${
+            [
+              ['Artist',a.artist],
+              ['Year',a.year],
+              ['Medium',a.medium],
+              ['Dimensions',a.size],
+              ['Edition',a.edition],
+              ['Collector',cname(a.collectorId)],
+              ['Status',a.status],
+              ['Valuation',money(a.value)],
+              ['Purchase price',money(a.price)],
+              ['Provenance',a.provenance],
+              ['Notes',a.notes]
+            ]
+
+            .map(x => `
+
+              <div class="fact">
+
+                <span>
+                  ${x[0]}
+                </span>
+
+                <b>
+                  ${esc(x[1] || '—')}
+                </b>
+
+              </div>
+
+            `).join('')
+          }
+
         </div>
 
+
         <div style="margin-top:25px">
-          <h3 style="font:20px Georgia">Artwork Documents</h3>
-          <div id="documents">Loading...</div>
+
+          <h3 style="font:20px Georgia">
+            Artwork Documents
+          </h3>
+
+          <div id="documents">
+            Loading...
+          </div>
+
         </div>
+
       </div>
+
     </div>
   `;
 
-  $('detailModal').classList.add('show');
 
-  const {data:documents,error} = await supabaseClient
-    .from('artwork_documents')
-    .select('*')
-    .eq('artwork_id',id);
+  $('detailModal')
+    .classList
+    .add('show');
+
+
+  /* Get document records */
+
+  const {
+    data:documents,
+    error
+  } =
+    await supabaseClient
+      .from('artwork_documents')
+      .select('*')
+      .eq('artwork_id',id);
+
 
   if(error){
-    console.error(error);
+
+    console.error(
+      'DOCUMENT READ ERROR:',
+      error
+    );
+
     $('documents').innerHTML =
       '<span style="color:#999">Unable to load documents</span>';
+
     return;
   }
 
-  if(!documents || documents.length === 0){
+
+  if(!documents ||
+     documents.length === 0){
+
     $('documents').innerHTML =
       '<span style="color:#999">No documents uploaded</span>';
+
     return;
   }
 
-  $('documents').innerHTML = documents.map(doc => {
 
-    const {data:urlData} = supabaseClient
-      .storage
-      .from('artwork-documents')
-      .getPublicUrl(doc.file_path);
+  $('documents').innerHTML =
+    documents.map(doc => {
 
-    return `
-      <div style="
-        margin-top:10px;
-        padding:12px;
-        background:#fff;
-        border:1px solid #e5e1d8;
-        border-radius:7px;
-      ">
-        📄 ${esc(doc.file_name)}
-        <br>
-        <a href="${urlData.publicUrl}"
-           target="_blank"
-           style="display:inline-block;margin-top:7px">
-          Open document
-        </a>
-      </div>
-    `;
-  }).join('');
+      const {
+        data:urlData
+      } =
+        supabaseClient
+          .storage
+          .from('artwork-documents')
+          .getPublicUrl(
+            doc.file_path
+          );
+
+
+      return `
+
+        <div style="
+          margin-top:10px;
+          padding:12px;
+          background:#fff;
+          border:1px solid #e5e1d8;
+          border-radius:7px;
+        ">
+
+          📄
+          ${esc(doc.file_name)}
+
+          <br>
+
+          <a
+            href="${urlData.publicUrl}"
+            target="_blank"
+            style="
+              display:inline-block;
+              margin-top:7px
+            "
+          >
+            Open document
+          </a>
+
+        </div>
+
+      `;
+
+    }).join('');
 }
-function exportDB(){let b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='art-catalogue-backup.json';a.click()}function importDB(e){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);db.artworks=x.artworks||[];db.collectors=x.collectors||[];persist();alert('Imported successfully')}catch{alert('Invalid backup')}};r.readAsText(e.target.files[0])}render();
+
+
+/* =========================
+   EXPORT / IMPORT
+========================= */
+
+function exportDB(){
+
+  let b =
+    new Blob(
+      [
+        JSON.stringify(
+          db,
+          null,
+          2
+        )
+      ],
+      {
+        type:'application/json'
+      }
+    );
+
+
+  let a =
+    document.createElement('a');
+
+  a.href =
+    URL.createObjectURL(b);
+
+  a.download =
+    'art-catalogue-backup.json';
+
+  a.click();
+}
+
+
+function importDB(e){
+
+  let r =
+    new FileReader();
+
+
+  r.onload = () => {
+
+    try{
+
+      let x =
+        JSON.parse(r.result);
+
+      db.artworks =
+        x.artworks || [];
+
+      db.collectors =
+        x.collectors || [];
+
+      persist();
+
+      alert(
+        'Imported successfully'
+      );
+
+    }catch{
+
+      alert(
+        'Invalid backup'
+      );
+
+    }
+
+  };
+
+
+  r.readAsText(
+    e.target.files[0]
+  );
+}
+
+
+/* START APP */
+
+render();
 
 </script></body></html>
