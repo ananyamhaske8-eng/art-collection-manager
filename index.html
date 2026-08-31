@@ -85,32 +85,7 @@ async function saveArt(e){
 
     if(artError) throw artError;
 
-    const certificateInput=$('certificate');
-    const documentFiles=certificateInput?.files||[];
-
-    for(const file of documentFiles){
-      const documentPath=`${artworkId}/${Date.now()}-${file.name}`;
-
-      const {error:fileError}=await supabaseClient
-        .storage
-        .from('artwork-documents')
-        .upload(documentPath,file,{upsert:true});
-
-      if(fileError) throw new Error('DOCUMENT STORAGE ERROR:'+fileError.message);
-
-      const {error:docError}=await supabaseClient
-        .from('artwork_documents')
-        .insert({
-          artwork_id:artworkId,
-          file_name:file.name,
-          file_path:documentPath,
-          file_type:file.type,
-          document_type:'Certificate / Documentation'
-        });
-
-      if(docError) throw new Error('DOCUMENT DATABASE ERROR:'+docError.message);
-    }
-
+    
     alert('Artwork saved successfully!');
 
     e.target.reset();
