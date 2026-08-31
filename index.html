@@ -93,7 +93,7 @@ async function saveArt(e){
 
       const {error:fileError}=await supabaseClient
         .storage
-        .from('artwork-document')
+        .from('artwork-documents')
         .upload(documentPath,file,{upsert:true});
 
       if(fileError) throw fileError;
