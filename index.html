@@ -50,14 +50,14 @@ async function saveArt(e){
 
       const {error:photoError}=await supabaseClient
         .storage
-        .from('artworks')
+        .from('artwork')
         .upload(photoPath,photoFile,{upsert:true});
 
       if(photoError)throw photoError;
 
       const {data:photoData}=supabaseClient
         .storage
-        .from('artworks')
+        .from('artwork')
         .getPublicUrl(photoPath);
 
       imageUrl=photoData.publicUrl;
@@ -94,7 +94,7 @@ async function saveArt(e){
 
       const {error:fileError}=await supabaseClient
         .storage
-        .from('artwork-documents')
+        .from('artwork-document')
         .upload(documentPath,file);
 
       if(fileError)throw fileError;
