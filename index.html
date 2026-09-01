@@ -737,7 +737,13 @@ async function view(id){
           <div id="documents">
             Loading...
           </div>
-
+<button
+  class="btn"
+  style="background:#a33;margin-top:25px"
+  onclick="deleteArtwork(${id})"
+>
+  Delete Artwork
+</button>
         </div>
 
       </div>
@@ -750,16 +756,7 @@ async function view(id){
     .classList
     .add('show');
 
-const deleteButton = document.createElement('button');
 
-deleteButton.className = 'btn';
-deleteButton.style.background = '#a33';
-deleteButton.style.marginTop = '25px';
-deleteButton.textContent = 'Delete Artwork';
-
-deleteButton.onclick = () => deleteArtwork(id);
-
-$('detail').appendChild(deleteButton);
   /* Get document records */
 
   const {
