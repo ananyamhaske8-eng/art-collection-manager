@@ -1010,10 +1010,19 @@ async function loadArtworks(){
 
 async function startApp(){
 
-  await loadArtworks();
+  try {
+
+    await loadArtworks();
+
+  } catch(error) {
+
+    console.error('Startup error:', error);
+
+  }
 
   render();
 
 }
 
 startApp();
+  
