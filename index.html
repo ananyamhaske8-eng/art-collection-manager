@@ -750,7 +750,16 @@ async function view(id){
     .classList
     .add('show');
 
+const deleteButton = document.createElement('button');
 
+deleteButton.className = 'btn';
+deleteButton.style.background = '#a33';
+deleteButton.style.marginTop = '25px';
+deleteButton.textContent = 'Delete Artwork';
+
+deleteButton.onclick = () => deleteArtwork(id);
+
+$('detail').appendChild(deleteButton);
   /* Get document records */
 
   const {
@@ -834,7 +843,125 @@ async function view(id){
     }).join('');
 }
 
+/* =========================
+   DELETE ARTWORK
+========================= */
 
+async function deleteArtwork(id){
+
+  const artwork =
+    db.artworks.find(
+      a => String(a.id) === String(id)
+    );
+
+  if(!artwork) return;
+
+  const confirmed =
+    confirm(
+      `Are you sure you want to delete "${artwork.title}"?\n\nThis will permanently remove the artwork from your catalogue.`
+    );
+
+  if(!confirmed) return;
+
+  try{
+
+    /* Delete document records */
+
+    const { error: documentDeleteError } =
+      await supabaseClient
+        .from('artwork_documents')
+        .delete()
+        .eq('artwork_id', id);
+
+    if(documentDeleteError){
+
+      throw new Error(
+        'Could not delete artwork documents: ' +
+        documentDeleteError.message
+      );
+
+    }
+
+
+    /* Delete artwork photo */
+
+    if(artwork.image_url){
+
+      const marker =
+        '/storage/v1/object/public/artworks/';
+
+      const index =
+        artwork.image_url.indexOf(marker);
+
+      if(index !== -1){
+
+        const photoPath =
+          artwork.image_url.substring(
+            index + marker.length
+          );
+
+        await supabaseClient
+          .storage
+          .from('artworks')
+          .remove([photoPath]);
+
+      }
+
+    }
+
+
+    /* Delete artwork from Supabase */
+
+    const { error: artworkDeleteError } =
+      await supabaseClient
+        .from('artworks')
+        .delete()
+        .eq('id', id);
+
+    if(artworkDeleteError){
+
+      throw new Error(
+        'Could not delete artwork: ' +
+        artworkDeleteError.message
+      );
+
+    }
+
+
+    /* Delete from local catalogue */
+
+    db.artworks =
+      db.artworks.filter(
+        a => String(a.id) !== String(id)
+      );
+
+    localStorage.setItem(
+      K,
+      JSON.stringify(db)
+    );
+
+
+    closeM('detailModal');
+
+    render();
+
+    alert('Artwork deleted successfully.');
+
+  }catch(error){
+
+    console.error(
+      'DELETE ARTWORK ERROR:',
+      error
+    );
+
+    alert(
+      'Could not delete artwork.\n\n' +
+      error.message
+    );
+
+  }
+
+}
 /* =========================
    EXPORT / IMPORT
 ========================= */
