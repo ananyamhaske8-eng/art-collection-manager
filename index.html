@@ -910,9 +910,110 @@ function importDB(e){
   );
 }
 
+/* =========================
+   LOAD ARTWORKS FROM SUPABASE
+========================= */
 
+async function loadArtworks(){
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from('artworks')
+        .select('*')
+        .order('id',{ascending:true});
+
+
+    if(error){
+
+      console.error(
+        'LOAD ARTWORKS ERROR:',
+        error
+      );
+
+      return;
+    }
+
+
+    db.artworks =
+      (data || []).map(a => ({
+
+        id:
+          a.id,
+
+        title:
+          a.title || '',
+
+        artist:
+          a.artist || '',
+
+        year:
+          a.year || '',
+
+        medium:
+          a.medium || '',
+
+        size:
+          a.size || '',
+
+        edition:
+          a.edition || '',
+
+        value:
+          Number(a.value || 0),
+
+        price:
+          Number(a.price || 0),
+
+        collectorId:
+          a.collector_id || null,
+
+        status:
+          a.status || 'Available',
+
+        provenance:
+          a.provenance || '',
+
+        notes:
+          a.notes || a.description || '',
+
+        image:
+          a.image_url || '',
+
+        image_url:
+          a.image_url || ''
+
+      }));
+
+
+    console.log(
+      'Artworks loaded from Supabase:',
+      db.artworks
+    );
+
+
+  }catch(error){
+
+    console.error(
+      'LOAD ERROR:',
+      error
+    );
+
+  }
+
+}
 /* START APP */
 
-render();
+async function startApp(){
 
-</script></body></html>
+  await loadArtworks();
+
+  render();
+
+}
+
+startApp();
