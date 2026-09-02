@@ -804,7 +804,7 @@ async function view(id){
       } =
         supabaseClient
           .storage
-          .from('artwork-documents')
+          .from('artwork_documents')
           .getPublicUrl(
             doc.file_path
           );
