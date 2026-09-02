@@ -809,7 +809,7 @@ console.log(
           } =
             await supabaseClient
               .storage
-              .from('artwork_documents')
+              .from('artwork-documents')
               .createSignedUrl(
                 doc.file_path,
                 3600
