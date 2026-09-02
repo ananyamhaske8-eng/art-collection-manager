@@ -797,50 +797,77 @@ async function view(id){
 
 
   $('documents').innerHTML =
-    documents.map(doc => {
+  (
+    await Promise.all(
+      documents.map(async doc => {
 
-      const {
-        data:urlData
-      } =
-        supabaseClient
-          .storage
-          .from('artwork_documents')
-          .getPublicUrl(
-            doc.file_path
+        const {
+          data:urlData,
+          error:urlError
+        } =
+          await supabaseClient
+            .storage
+            .from('artwork_documents')
+            .createSignedUrl(
+              doc.file_path,
+              3600
+            );
+
+        if(urlError){
+          console.error(
+            'DOCUMENT URL ERROR:',
+            urlError
           );
 
+          return `
+            <div style="
+              margin-top:10px;
+              padding:12px;
+              background:#fff;
+              border:1px solid #e5e1d8;
+              border-radius:7px;
+              color:#999;
+            ">
+              📄 ${esc(doc.file_name)}
+              <br>
+              Unable to open document
+            </div>
+          `;
+        }
 
-      return `
+        return `
 
-        <div style="
-          margin-top:10px;
-          padding:12px;
-          background:#fff;
-          border:1px solid #e5e1d8;
-          border-radius:7px;
-        ">
+          <div style="
+            margin-top:10px;
+            padding:12px;
+            background:#fff;
+            border:1px solid #e5e1d8;
+            border-radius:7px;
+          ">
 
-          📄
-          ${esc(doc.file_name)}
+            📄
+            ${esc(doc.file_name)}
 
-          <br>
+            <br>
 
-          <a
-            href="${urlData.publicUrl}"
-            target="_blank"
-            style="
-              display:inline-block;
-              margin-top:7px
-            "
-          >
-            Open document
-          </a>
+            <a
+              href="${urlData.signedUrl}"
+              target="_blank"
+              style="
+                display:inline-block;
+                margin-top:7px
+              "
+            >
+              Open document
+            </a>
 
-        </div>
+          </div>
 
-      `;
+        `;
 
-    }).join('');
+      })
+    )
+  ).join('');
 }
 
 /* =========================
