@@ -813,12 +813,37 @@ async function view(id){
       3600
     );
 
+const {
+  data: urlData,
+  error: urlError
+} =
+  await supabaseClient
+    .storage
+    .from('artwork_documents')
+    .createSignedUrl(
+      doc.file_path,
+      3600
+    );
+
 if(urlError){
 
   console.error(
     'DOCUMENT URL ERROR:',
     urlError
   );
+
+  return `
+    <div style="
+      margin-top:10px;
+      padding:12px;
+      color:#999;
+    ">
+      📄 ${esc(doc.file_name)}
+      <br>
+      Unable to open document
+    </div>
+  `;
+}
 
   return `
     <div style="
