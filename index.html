@@ -794,7 +794,10 @@ async function view(id){
 
 
   /* CREATE SIGNED DOCUMENT LINKS */
-
+console.log(
+  'CURRENT USER:',
+  await supabaseClient.auth.getUser()
+);
   $('documents').innerHTML =
     (
       await Promise.all(
