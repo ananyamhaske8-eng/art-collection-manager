@@ -817,7 +817,10 @@ console.log(
 
 
           if(signedUrlError){
-
+alert(
+  'DOCUMENT ERROR: ' +
+  signedUrlError.message
+);
             console.error(
               'DOCUMENT URL ERROR:',
               signedUrlError
