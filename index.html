@@ -266,7 +266,7 @@ description:
       const { error: fileError } =
         await supabaseClient
           .storage
-          .from('artwork-documents')
+          .from('artwork_documents')
           .upload(
             documentPath,
             file,
