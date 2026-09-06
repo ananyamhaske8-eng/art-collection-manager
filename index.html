@@ -139,7 +139,6 @@ function preview(e){
   r.readAsDataURL(file);
 }
 
-
 /* =========================
    SAVE ARTWORK
 ========================= */
@@ -150,20 +149,19 @@ async function saveArt(e){
 
   try{
 
-  const editId = $('artForm').dataset.editId;$('artForm').dataset.existingImage =
-  a.image_url || a.image || '';
+    const editId =
+      $('artForm').dataset.editId;
 
-const artworkId =
-  editId
-    ? Number(editId)
-    : Date.now();
-
-    /* -------------------------
+    const artworkId =
+      editId
+        ? Number(editId)
+        : Date.now();
+/* -------------------------
        1. UPLOAD ARTWORK PHOTO
     ------------------------- */
 
-   let imageUrl =
-  $('artForm').dataset.existingImage || '';
+    let imageUrl =
+      $('artForm').dataset.existingImage || '';
 
     const photoInput = $('photo');
     const photoFile = photoInput?.files?.[0];
@@ -448,10 +446,54 @@ else{
 }
 
 
+/* -------------------------
+   5. CLEAN UP
+------------------------- */
+
+persist();
+
+alert(
+  editId
+    ? 'Artwork updated successfully!'
+    : 'Artwork added successfully!'
+);
+
+e.target.reset();
+
+img = '';
+
+$('prev').style.display = 'none';
+
+delete $('artForm').dataset.editId;
+delete $('artForm').dataset.existingImage;
+
+$('artModal')
+  .querySelector('.boxhead h2')
+  .textContent = 'Add artwork';
+
+closeM('artModal');
+
+render();
+
+  }catch(err){
+
+    console.error(
+      'SAVE ARTWORK ERROR:',
+      err
+    );
+
+    alert(
+      err.message ||
+      'Unable to save artwork.'
+    );
+  }
+
+}
+
+
 /* =========================
    ARTWORK CARD
 ========================= */
-
 function card(a){
 
   return `
