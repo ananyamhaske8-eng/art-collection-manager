@@ -375,84 +375,76 @@ description:
     }
 
 
-    /* -------------------------
-       4. ALSO SAVE LOCALLY
-    ------------------------- */
+  /* -------------------------
+   4. SAVE LOCALLY
+------------------------- */
 
-    db.artworks.push({
+const updatedArtwork = {
 
-      id: artworkId,
+  id: artworkId,
 
-      title: $('title').value,
+  title: $('title').value,
+  artist: $('artist').value,
+  year: $('year').value,
+  medium: $('medium').value,
+  size: $('size').value,
+  edition: $('edition').value,
 
-      artist: $('artist').value,
+  value:
+    Number($('value').value) || 0,
 
-      year: $('year').value,
+  price:
+    Number($('price').value) || 0,
 
-      medium: $('medium').value,
+  collectorId:
+    $('collector').value || null,
 
-      size: $('size').value,
+  status:
+    $('status').value,
 
-      edition: $('edition').value,
+  provenance:
+    $('provenance').value,
 
-      value:
-        Number($('value').value) || 0,
+  notes:
+    $('notes').value,
 
-      price:
-        Number($('price').value) || 0,
+  image:
+    imageUrl,
 
-      collectorId:
-        $('collector').value || null,
-
-      status:
-        $('status').value,
-
-      provenance:
-        $('provenance').value,
-
-      notes:
-        $('notes').value,
-
-      image:
-        imageUrl,
-
-      image_url:
-        imageUrl
-
-    });
+  image_url:
+    imageUrl
+};
 
 
-    persist();
+/* EDIT EXISTING ARTWORK */
 
+if(editId){
 
-    alert(
-      'Artwork and documents saved successfully!'
+  const index =
+    db.artworks.findIndex(
+      x =>
+        String(x.id) ===
+        String(editId)
     );
 
+  if(index !== -1){
 
-    e.target.reset();
+    db.artworks[index] =
+      updatedArtwork;
 
-    img = '';
-
-    $('prev').style.display = 'none';
-
-    closeM('artModal');
-
-    render();
-
-
-  }catch(error){
-
-    console.error(
-      'SAVE ARTWORK ERROR:',
-      error
-    );
-
-    alert(
-      'Could not save artwork.\n\n' +
-      error.message
-    );
   }
+
+}
+
+
+/* ADD NEW ARTWORK */
+
+else{
+
+  db.artworks.push(
+    updatedArtwork
+  );
+
 }
 
 
