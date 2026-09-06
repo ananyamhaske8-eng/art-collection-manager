@@ -1326,14 +1326,18 @@ async function editArtwork(id){
 
   if(!a) return;
 
+  console.log('EDIT ARTWORK DATA:', a);
+  console.log('EDIT IMAGE URL:', a.image_url, a.image);
+
   /* Fill collector list */
+
   $('collector').innerHTML =
     '<option value="">Unassigned</option>' +
     db.collectors.map(c =>
       `<option value="${c.id}">${esc(c.name)}</option>`
     ).join('');
 
-  /* Fill existing artwork data */
+  /* Fill artwork data */
 
   $('title').value = a.title || '';
   $('artist').value = a.artist || '';
@@ -1348,25 +1352,31 @@ async function editArtwork(id){
   $('provenance').value = a.provenance || '';
   $('notes').value = a.notes || '';
 
-  /* Remember which artwork we are editing */
+  /* Remember artwork being edited */
 
-  $('artForm').dataset.editId = id;$('artForm').dataset.existingImage =
-  a.image_url || a.image || '';
-  /* Show existing artwork photo while editing */
+  $('artForm').dataset.editId = id;
 
-const existingImage =
-  a.image_url || a.image || '';
+  const existingImage =
+    a.image_url ||
+    a.image ||
+    '';
 
-if(existingImage){
+  $('artForm').dataset.existingImage =
+    existingImage;
 
-  $('prev').src = existingImage;
-  $('prev').style.display = 'block';
+  /* Show existing artwork photo */
 
-}else{
+  if(existingImage){
 
-  $('prev').style.display = 'none';
+    $('prev').src = existingImage;
+    $('prev').style.display = 'block';
 
-}
+  }else{
+
+    $('prev').removeAttribute('src');
+    $('prev').style.display = 'none';
+
+  }
 
   /* Change heading */
 
