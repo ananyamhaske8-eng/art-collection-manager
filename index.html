@@ -770,14 +770,24 @@ async function view(id){
             Loading...
           </div>
 
-          <button
-            class="btn"
-            style="background:#a33;margin-top:25px"
-            onclick="deleteArtwork(${id})"
-          >
-            Delete Artwork
-          </button>
+         <div style="margin-top:25px;display:flex;gap:10px;flex-wrap:wrap">
 
+  <button
+    class="btn"
+    onclick="editArtwork(${id})"
+  >
+    ✏️ Edit Artwork
+  </button>
+
+  <button
+    class="btn"
+    style="background:#a33"
+    onclick="deleteArtwork(${id})"
+  >
+    Delete Artwork
+  </button>
+
+</div>
         </div>
 
       </div>
