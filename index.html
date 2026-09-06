@@ -219,53 +219,77 @@ let imageUrl =
        2. SAVE ARTWORK DATABASE
     ------------------------- */
 
+    const artworkData = {
+
+      id: artworkId,
+
+      title: $('title').value,
+
+      artist: $('artist').value,
+
+      year: $('year').value,
+
+      medium: $('medium').value,
+
+      height: null,
+
+      width: null,
+
+      price:
+        Number($('price').value) || 0,
+
+      value:
+        Number($('value').value) || 0,
+
+      description:
+        $('notes').value,
+
+      edition:
+        $('edition').value,
+
+      collector_id:
+        $('collector').value || null,
+
+      status:
+        $('status').value,
+
+      provenance:
+        $('provenance').value,
+
+      notes:
+        $('notes').value
+    };
+
+
+    /* Only change the picture
+       if a NEW picture was selected */
+
+    if(photoFile){
+
+      artworkData.image_url =
+        imageUrl;
+
+    }
+
+
     const { error: artError } =
       await supabaseClient
         .from('artworks')
-        .upsert({
+        .upsert(artworkData);
 
-          id: artworkId,
 
-          title: $('title').value,
+    if(artError){
 
-          artist: $('artist').value,
+      console.error(
+        'ARTWORK DATABASE ERROR:',
+        artError
+      );
 
-          year: $('year').value,
-
-          medium: $('medium').value,
-
-          height: null,
-
-          width: null,
-
-         price:
-  Number($('price').value) || 0,
-
-value:
-  Number($('value').value) || 0,
-
-description:
-  $('notes').value,
-
-          image_url:
-            imageUrl,
-
-          edition:
-            $('edition').value,
-
-          collector_id:
-            $('collector').value || null,
-
-          status:
-            $('status').value,
-
-          provenance:
-            $('provenance').value,
-
-          notes:
-            $('notes').value
-        });
-
+      throw new Error(
+        'Artwork database error: ' +
+        artError.message
+      );
+    }
 
     if(artError){
 
@@ -417,10 +441,16 @@ const updatedArtwork = {
     $('notes').value,
 
   image:
-    imageUrl,
+    imageUrl ||
+    existingArtwork?.image_url ||
+    existingArtwork?.image ||
+    '',
 
   image_url:
-    imageUrl
+    imageUrl ||
+    existingArtwork?.image_url ||
+    existingArtwork?.image ||
+    ''
 };
 
 
