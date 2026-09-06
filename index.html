@@ -1224,6 +1224,54 @@ async function startApp(){
 
 }
 
-startApp();
+startApp();/* =========================
+   EDIT ARTWORK
+========================= */
+
+async function editArtwork(id){
+
+  const a =
+    db.artworks.find(
+      x => String(x.id) === String(id)
+    );
+
+  if(!a) return;
+
+  /* Fill collector list */
+  $('collector').innerHTML =
+    '<option value="">Unassigned</option>' +
+    db.collectors.map(c =>
+      `<option value="${c.id}">${esc(c.name)}</option>`
+    ).join('');
+
+  /* Fill existing artwork data */
+
+  $('title').value = a.title || '';
+  $('artist').value = a.artist || '';
+  $('year').value = a.year || '';
+  $('medium').value = a.medium || '';
+  $('size').value = a.size || '';
+  $('edition').value = a.edition || '';
+  $('value').value = a.value || '';
+  $('price').value = a.price || '';
+  $('collector').value = a.collectorId || '';
+  $('status').value = a.status || 'Available';
+  $('provenance').value = a.provenance || '';
+  $('notes').value = a.notes || '';
+
+  /* Remember which artwork we are editing */
+
+  $('artForm').dataset.editId = id;
+
+  /* Change heading */
+
+  $('artModal')
+    .querySelector('.boxhead h2')
+    .textContent = 'Edit artwork';
+
+  /* Show modal */
+
+  $('artModal').classList.add('show');
+}
 </script></body></html>
   
