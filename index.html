@@ -150,7 +150,8 @@ async function saveArt(e){
 
   try{
 
-  const editId = $('artForm').dataset.editId;
+  const editId = $('artForm').dataset.editId;$('artForm').dataset.existingImage =
+  a.image_url || a.image || '';
 
 const artworkId =
   editId
@@ -161,7 +162,8 @@ const artworkId =
        1. UPLOAD ARTWORK PHOTO
     ------------------------- */
 
-    let imageUrl = '';
+   let imageUrl =
+  $('artForm').dataset.existingImage || '';
 
     const photoInput = $('photo');
     const photoFile = photoInput?.files?.[0];
