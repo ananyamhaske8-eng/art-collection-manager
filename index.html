@@ -12,7 +12,7 @@
 </label>
 
 <label class='full'>Notes<textarea id='notes'></textarea></label><div class='full'><button class='btn'>Save artwork</button></div></form></div></div>
-<div id='colModal' class='modal'><div class='box'><div class='boxhead'><h2 style='font:24px Georgia'>Add collector</h2><button onclick="closeM('colModal')">×</button></div><form class='form' onsubmit='saveCol(event)'><label>Name*<input id='cname' required></label><label>Email<input id='email'></label><label>Phone<input id='phone'></label><label>Company<input id='company'></label><label class='full'>Address<input id='address'></label><label class='full'>Notes<textarea id='cnote'></textarea></label><div class='full'><button class='btn'>Save collector</button></div></form></div></div>
+<div id='colModal' class='modal'><div class='box'><div class='boxhead'><h2 style='font:24px Georgia'>Add collector</h2><button onclick="closeM('colModal')">×</button></div><form id='colForm' class='form' onsubmit='saveCol(event)'><label>Name*<input id='cname' required></label><label>Email<input id='email'></label><label>Phone<input id='phone'></label><label>Company<input id='company'></label><label class='full'>Address<input id='address'></label><label class='full'>Notes<textarea id='cnote'></textarea></label><div class='full'><button class='btn'>Save collector</button></div></form></div></div>
 <div id='detailModal' class='modal'><div class='box'><div class='boxhead'><h2 id='dt' style='font:24px Georgia'></h2><button onclick="closeM('detailModal')">×</button></div><div id='detail'></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -667,17 +667,25 @@ function render(){
             ${a.length}
           </td>
 
-          <td>
-            ${money(
-              a.reduce(
-                (s,x) =>
-                  s + Number(x.value || 0),
-                0
-              )
-            )}
-          </td>
+        <td>
+  ${money(
+    a.reduce(
+      (s,x) =>
+        s + Number(x.value || 0),
+      0
+    )
+  )}
+</td>
 
-        </tr>
+<td>
+  <button
+    class="btn"
+    onclick="editCollector(${c.id})">
+    ✏️ Edit
+  </button>
+</td>
+
+</tr>
       `;
 
     }).join('') ||
@@ -1313,6 +1321,154 @@ async function editArtwork(id){
   /* Show modal */
 
   $('artModal').classList.add('show');
+}
+  /* =========================
+   SAVE / UPDATE COLLECTOR
+========================= */
+
+function saveCol(e){
+
+  e.preventDefault();
+
+  const editId =
+    $('colForm').dataset.editId;
+
+  const collectorData = {
+
+    name:
+      $('cname').value,
+
+    email:
+      $('email').value,
+
+    phone:
+      $('phone').value,
+
+    company:
+      $('company').value,
+
+    address:
+      $('address').value,
+
+    notes:
+      $('cnote').value
+  };
+
+
+  /* =========================
+     UPDATE EXISTING COLLECTOR
+  ========================= */
+
+  if(editId){
+
+    const index =
+      db.collectors.findIndex(
+        c =>
+          String(c.id) ===
+          String(editId)
+      );
+
+    if(index !== -1){
+
+      db.collectors[index] = {
+
+        id:
+          db.collectors[index].id,
+
+        ...collectorData
+
+      };
+
+    }
+
+    alert('Collector updated successfully!');
+
+  }
+
+
+  /* =========================
+     ADD NEW COLLECTOR
+  ========================= */
+
+  else{
+
+    db.collectors.push({
+
+      id: Date.now(),
+
+      ...collectorData
+
+    });
+
+    alert('Collector added successfully!');
+
+  }
+
+
+  /* =========================
+     CLEAN UP
+  ========================= */
+
+  e.target.reset();
+
+  delete $('colForm').dataset.editId;
+
+  $('colModal')
+    .querySelector('.boxhead h2')
+    .textContent = 'Add collector';
+
+  $('colModal')
+    .querySelector('button.btn')
+    .textContent = 'Save collector';
+
+  closeM('colModal');
+
+  persist();
+
+  render();
+}
+  /* =========================
+   EDIT COLLECTOR
+========================= */
+
+function editCollector(id){
+
+  const c =
+    db.collectors.find(
+      x => String(x.id) === String(id)
+    );
+
+  if(!c) return;
+
+  $('cname').value =
+    c.name || '';
+
+  $('email').value =
+    c.email || '';
+
+  $('phone').value =
+    c.phone || '';
+
+  $('company').value =
+    c.company || '';
+
+  $('address').value =
+    c.address || '';
+
+  $('cnote').value =
+    c.notes || '';
+
+  $('colModal')
+    .querySelector('.boxhead h2')
+    .textContent = 'Edit collector';
+
+  $('colModal')
+    .querySelector('button.btn')
+    .textContent = 'Update collector';
+
+  $('colForm').dataset.editId = id;
+
+  $('colModal').classList.add('show');
 }
 </script></body></html>
   
