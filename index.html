@@ -522,18 +522,23 @@ function render(){
     $('filter')?.value || '';
 
 
-  let arr =
-    db.artworks.filter(a =>
+ let arr =
+    db.artworks
+      .filter(a =>
 
-      (!f || a.status === f) &&
+        (!f || a.status === f) &&
 
-      (
-        `${a.title} ${a.artist} ${cname(a.collectorId)}`
-          .toLowerCase()
-          .includes(q)
+        (
+          `${a.title} ${a.artist} ${cname(a.collectorId)}`
+            .toLowerCase()
+            .includes(q)
+        )
       )
-    );
-
+      .sort(
+        (a,b) =>
+          Number(b.value || 0) -
+          Number(a.value || 0)
+      );
 
   $('arts').innerHTML =
     arr.map(card).join('') ||
