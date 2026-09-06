@@ -1352,6 +1352,21 @@ async function editArtwork(id){
 
   $('artForm').dataset.editId = id;$('artForm').dataset.existingImage =
   a.image_url || a.image || '';
+  /* Show existing artwork photo while editing */
+
+const existingImage =
+  a.image_url || a.image || '';
+
+if(existingImage){
+
+  $('prev').src = existingImage;
+  $('prev').style.display = 'block';
+
+}else{
+
+  $('prev').style.display = 'none';
+
+}
 
   /* Change heading */
 
