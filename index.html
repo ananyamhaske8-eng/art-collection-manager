@@ -1310,7 +1310,8 @@ async function editArtwork(id){
 
   /* Remember which artwork we are editing */
 
-  $('artForm').dataset.editId = id;
+  $('artForm').dataset.editId = id;$('artForm').dataset.existingImage =
+  a.image_url || a.image || '';
 
   /* Change heading */
 
