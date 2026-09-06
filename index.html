@@ -150,7 +150,12 @@ async function saveArt(e){
 
   try{
 
-    const artworkId = Date.now();
+  const editId = $('artForm').dataset.editId;
+
+const artworkId =
+  editId
+    ? Number(editId)
+    : Date.now();
 
     /* -------------------------
        1. UPLOAD ARTWORK PHOTO
@@ -207,7 +212,7 @@ async function saveArt(e){
     const { error: artError } =
       await supabaseClient
         .from('artworks')
-        .insert({
+        .upsert({
 
           id: artworkId,
 
