@@ -1450,6 +1450,8 @@ const { data: docs, error: docsError } =
 if(!docsError && docs){
   existingDocs = docs;
 }
+  console.log('EXISTING DOCUMENTS:', docs);
+console.log('DOCUMENT ERROR:', docsError);
 
 let oldDocsBox =
   document.getElementById('existingDocs');
