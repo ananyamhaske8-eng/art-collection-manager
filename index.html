@@ -616,6 +616,15 @@ render();
 ========================= */
 function card(a){
 
+  const dimensions =
+    a.height && a.width
+      ? `${a.height} × ${a.width} inch`
+      : a.height
+        ? `${a.height} inch`
+        : a.width
+          ? `${a.width} inch`
+          : 'Size —';
+
   return `
     <div class="card"
          onclick="view(${a.id})">
@@ -645,7 +654,7 @@ function card(a){
         <div class="meta">
           ${esc(a.medium || 'Medium —')}
           ·
-          ${esc(a.size || 'Size —')}
+          ${esc(dimensions)}
         </div>
 
         <div style="margin-top:8px">
@@ -667,7 +676,6 @@ function card(a){
     </div>
   `;
 }
-
 
 /* =========================
    RENDER
