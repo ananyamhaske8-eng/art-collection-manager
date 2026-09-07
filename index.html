@@ -311,9 +311,9 @@ let imageUrl =
 
       medium: $('medium').value,
 
-      height: null,
+     height: $('size').value.split(/[xX×]/)[0].trim(),
 
-      width: null,
+width: $('size').value.split(/[xX×]/)[1]?.replace(/inch/i, '').trim() || null,
 
       price:
         Number($('price').value) || 0,
