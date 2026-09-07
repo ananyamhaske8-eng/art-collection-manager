@@ -585,7 +585,6 @@ img = '';
 $('prev').style.display = 'none';
 
 delete $('artForm').dataset.editId;
-delete $('artForm').dataset.existingImage;
 
 $('artModal')
   .querySelector('.boxhead h2')
@@ -1443,7 +1442,7 @@ async function editArtwork(id){
   /* Remember artwork being edited */
 
   $('artForm').dataset.editId = id;
-
+$('artForm').dataset.existingDocuments = 'true';
   const existingImage =
     a.image_url ||
     a.image ||
