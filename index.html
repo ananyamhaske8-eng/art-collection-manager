@@ -1437,12 +1437,56 @@ async function editArtwork(id){
   $('collector').value = a.collectorId || '';
   $('status').value = a.status || 'Available';
   $('provenance').value = a.provenance || '';
-  $('notes').value = a.notes || '';
+  $('notes').value = a.notes || '';/* SHOW EXISTING DOCUMENTS WHEN EDITING */
+
+let existingDocs = [];
+
+const { data: docs, error: docsError } =
+  await supabaseClient
+    .from('artwork_documents')
+    .select('*')
+    .eq('artwork_id', id);
+
+if(!docsError && docs){
+  existingDocs = docs;
+}
+
+let oldDocsBox =
+  document.getElementById('existingDocs');
+
+if(!oldDocsBox){
+
+  oldDocsBox =
+    document.createElement('div');
+
+  oldDocsBox.id = 'existingDocs';
+
+  oldDocsBox.style.marginTop = '8px';
+
+  $('certificate')
+    .parentElement
+    .appendChild(oldDocsBox);
+}
+
+if(existingDocs.length){
+
+  oldDocsBox.innerHTML =
+    '<small>Existing document(s):</small><br>' +
+    existingDocs
+      .map(doc =>
+        `📄 ${esc(doc.file_name)}`
+      )
+      .join('<br>');
+
+}else{
+
+  oldDocsBox.innerHTML = '';
+}
 
   /* Remember artwork being edited */
 
   $('artForm').dataset.editId = id;
-$('artForm').dataset.existingDocuments = 'true';
+
   const existingImage =
     a.image_url ||
     a.image ||
