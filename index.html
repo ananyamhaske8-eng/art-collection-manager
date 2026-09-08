@@ -1340,8 +1340,14 @@ async function loadArtworks(){
         medium:
           a.medium || '',
 
-        size:
-          a.size || '',
+       size:
+  a.height != null && a.width != null
+    ? `${a.height} × ${a.width} inch`
+    : a.height != null
+      ? `${a.height} inch`
+      : a.width != null
+        ? `${a.width} inch`
+        : '',
 
         edition:
           a.edition || '',
