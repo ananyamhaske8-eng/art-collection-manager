@@ -301,44 +301,51 @@ let imageUrl =
 
     const artworkData = {
 
-      id: artworkId,
+  id: artworkId,
 
-      title: $('title').value,
+  title: $('title').value,
 
-      artist: $('artist').value,
+  artist: $('artist').value,
 
-      year: $('year').value,
+  year: $('year').value,
 
-      medium: $('medium').value,
+  medium: $('medium').value,
 
-     height: $('size').value.split(/[xX×]/)[0].trim(),
+  height:
+  Number($('size').value.split(/[xX×]/)[0].trim()) || null,
 
-width: $('size').value.split(/[xX×]/)[1]?.replace(/inch/i, '').trim() || null,
+width:
+  Number(
+    $('size').value
+      .split(/[xX×]/)[1]
+      ?.replace(/inch/i, '')
+      .trim()
+  ) || null,
 
-      price:
-        Number($('price').value) || 0,
+  price:
+    Number($('price').value) || 0,
 
-      value:
-        Number($('value').value) || 0,
+  value:
+    Number($('value').value) || 0,
 
-      description:
-        $('notes').value,
+  description:
+    $('notes').value,
 
-      edition:
-        $('edition').value,
+  edition:
+    $('edition').value,
 
-      collector_id:
-        $('collector').value || null,
+  collector_id:
+    $('collector').value || null,
 
-      status:
-        $('status').value,
+  status:
+    $('status').value,
 
-      provenance:
-        $('provenance').value,
+  provenance:
+    $('provenance').value,
 
-      notes:
-        $('notes').value
-    };
+  notes:
+    $('notes').value
+};
 
 
     /* Only change the picture
