@@ -1464,7 +1464,69 @@ async function startApp(){
 
 }
 
-startApp();/* =========================
+startApp();
+  /* =========================
+   PASSWORD RECOVERY
+========================= */
+
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    if(event === 'PASSWORD_RECOVERY'){
+
+      const newPassword =
+        prompt('Enter your new password:');
+
+      if(!newPassword){
+        alert('Password not changed.');
+        return;
+      }
+
+      if(newPassword.length < 6){
+        alert('Password must be at least 6 characters.');
+        return;
+      }
+
+      const confirmPassword =
+        prompt('Confirm your new password:');
+
+      if(newPassword !== confirmPassword){
+        alert('Passwords do not match.');
+        return;
+      }
+
+      const { error } =
+        await supabaseClient.auth.updateUser({
+          password: newPassword
+        });
+
+      if(error){
+
+        console.error(
+          'PASSWORD UPDATE ERROR:',
+          error
+        );
+
+        alert(
+          'Could not update password:\n\n' +
+          error.message
+        );
+
+        return;
+      }
+
+      alert(
+        'Password updated successfully! 🎉'
+      );
+
+      await supabaseClient.auth.signOut();
+
+      window.location.href =
+        'https://ananyamhaske8-eng.github.io/art-collection-manager/';
+    }
+  }
+);
+  /* =========================
    EDIT ARTWORK
 ========================= */
 
