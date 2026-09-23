@@ -81,13 +81,135 @@
   }
 
 }
-</style></head><body><div class='app'><button class="mobile-menu" onclick="toggleMobileMenu()">☰</button><aside><div class='brand'>Art Collection Manager<small>Private catalogue</small></div><nav><button class='active' onclick="show('dashboard',this)"><span>Dashboard</span></button><button onclick="show('artworks',this)"><span>Artworks</span></button><button onclick="show('collectors',this)"><span>Collectors</span></button><button onclick="show('artists',this)"><span>Artists</span></button><button onclick="show('reports',this)"><span>Reports</span></button></nav></aside><main>
+</style></head><body><div class='app'><button class="mobile-menu" onclick="toggleMobileMenu()">☰</button><aside>
+  <div class='brand'>
+    Art Collection Manager
+    <small>Private catalogue</small>
+  </div>
+
+  <div id="accountBox" style="
+    background:#33322d;
+    padding:12px;
+    border-radius:8px;
+    margin:0 0 20px;
+    font-size:11px;
+  ">
+    <div style="color:#999;text-transform:uppercase;letter-spacing:1px">
+      Logged in as
+    </div>
+
+    <div id="currentUserEmail" style="
+      margin-top:5px;
+      color:#fff;
+      word-break:break-word;
+    ">
+      Loading...
+    </div>
+
+    <button
+      onclick="switchAccount()"
+      style="
+        width:100%;
+        margin-top:10px;
+        padding:9px;
+        border:1px solid #666;
+        border-radius:6px;
+        background:#44433e;
+        color:#fff;
+        cursor:pointer;
+        font-size:11px;
+      "
+    >
+      🔄 Login to Other Account
+    </button>
+  </div>
+
+  <nav><button class='active' onclick="show('dashboard',this)"><span>Dashboard</span></button><button onclick="show('artworks',this)"><span>Artworks</span></button><button onclick="show('collectors',this)"><span>Collectors</span></button><button onclick="show('artists',this)"><span>Artists</span></button><button onclick="show('reports',this)"><span>Reports</span></button></nav></aside><main>
 <section id='dashboard' class='page active'><div class='top'><div><div class='eyebrow'>Collection office</div><div class='title'>Dashboard</div><div class='sub'>Manage your paintings and collectors.</div></div><button class='btn' onclick='openArt()'>+ Add artwork</button></div><div class='stats'><div class='stat'><label>Artworks</label><b id='nArt'>0</b></div><div class='stat'><label>Collectors</label><b id='nCol'>0</b></div><div class='stat'><label>Artists</label><b id='nArtist'>0</b></div><div class='stat'><label>Collection value</label><b id='nVal'>₹0</b></div></div><div class='panel'><h2 style='font:20px Georgia'>Recent artworks</h2><div id='recent' class='grid'></div></div></section>
 <section id='artworks' class='page'><div class='top'><div><div class='eyebrow'>Visual catalogue</div><div class='title'>Artworks</div><div class='sub'>Click any artwork to see its complete record.</div></div><button class='btn' onclick='openArt()'>+ Add artwork</button></div><div class='toolbar'><input id='search' class='search' placeholder='Search title, artist or collector' oninput='render()'><select id='filter' onchange='render()'><option value=''>All status</option><option>Available</option><option>Sold</option><option>Reserved</option></select></div><div id='arts' class='grid'></div></section>
 <section id='collectors' class='page'><div class='top'><div><div class='eyebrow'>People</div><div class='title'>Collectors</div></div><button class='btn' onclick='openCol()'>+ Add collector</button></div><div class='panel'><table class='table'><thead><tr><th>Collector</th><th>Contact</th><th>Works</th><th>Value</th></tr></thead><tbody id='cols'></tbody></table></div></section>
 <section id='artists' class='page'><div class='top'><div><div class='eyebrow'>Artists</div><div class='title'>Artists</div></div></div><div class='panel'><table class='table'><thead><tr><th>Artist</th><th>Works</th><th>Value</th></tr></thead><tbody id='artists'></tbody></table></div></section>
 <section id='reports' class='page'><div class='top'><div><div class='eyebrow'>Insights</div><div class='title'>Reports</div></div></div><div class='stats'><div class='stat'><label>Total works</label><b id='rWorks'>0</b></div><div class='stat'><label>Total value</label><b id='rValue'>₹0</b></div><div class='stat'><label>Sold</label><b id='rSold'>0</b></div><div class='stat'><label>Available</label><b id='rAvail'>0</b></div></div><div class='panel'><h2 style='font:20px Georgia'>Backup</h2><p class='sub'>Export your catalogue so you can keep a copy before moving it to a cloud database.</p><button class='btn' onclick='exportDB()'>Export catalogue</button><button class='btn light' onclick="document.getElementById('import').click()">Import catalogue</button><input id='import' type='file' accept='.json' hidden onchange='importDB(event)'></div></section></main></div>
-<div id='artModal' class='modal'><div class='box'><div class='boxhead'><h2 style='font:24px Georgia'>Add artwork</h2><button onclick="closeM('artModal')">×</button></div><form id='artForm' class='form' onsubmit='saveArt(event)'><div class='full upload'><label>Upload artwork photo<input id='photo' type='file' accept='image/*' hidden onchange='preview(event)'><img id='prev'></label></div><label>Title*<input id='title' required></label><label>Artist<input id='artist'></label><label>Year<input id='year'></label><label>Medium<input id='medium'></label><label>Dimensions<input id='size'></label><label>Edition<input id='edition'></label><label>Current valuation (₹)<input id='value' type='number'></label><label>Purchase price (₹)<input id='price' type='number'></label><label>Collector<select id='collector'></select></label><label>Status<select id='status'><option>Available</option><option>Sold</option><option>Reserved</option></select></label><label>Provenance<input id='provenance'></label><label>Certificate / Documentation
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal">
+  <div class="box" style="max-width:420px">
+
+    <div style="text-align:center;margin-bottom:25px">
+      <div class="eyebrow">Private catalogue</div>
+
+      <h2 style="font:28px Georgia;margin:8px 0">
+        Art Collection Manager
+      </h2>
+
+      <div class="sub">
+        Login to access your collection
+      </div>
+    </div>
+
+    <form onsubmit="loginFromForm(event)">
+
+      <label style="font-size:11px;color:#777">
+        Email
+        <input
+          id="loginEmail"
+          type="email"
+          required
+          placeholder="Enter your email"
+          style="
+            width:100%;
+            margin-top:6px;
+            padding:12px;
+            border:1px solid #ddd;
+            border-radius:7px;
+          "
+        >
+      </label>
+
+      <label style="
+        display:block;
+        margin-top:15px;
+        font-size:11px;
+        color:#777;
+      ">
+        Password
+
+        <input
+          id="loginPassword"
+          type="password"
+          required
+          placeholder="Enter your password"
+          style="
+            width:100%;
+            margin-top:6px;
+            padding:12px;
+            border:1px solid #ddd;
+            border-radius:7px;
+          "
+        >
+      </label>
+
+      <button
+        class="btn"
+        type="submit"
+        style="width:100%;margin-top:20px"
+      >
+        Login
+      </button>
+
+      <div
+        id="loginMessage"
+        style="
+          margin-top:12px;
+          text-align:center;
+          font-size:12px;
+          color:#a33;
+        "
+      ></div>
+
+    </form>
+
+  </div>
+</div> <div id='artModal' class='modal'><div class='box'><div class='boxhead'><h2 style='font:24px Georgia'>Add artwork</h2><button onclick="closeM('artModal')">×</button></div><form id='artForm' class='form' onsubmit='saveArt(event)'><div class='full upload'><label>Upload artwork photo<input id='photo' type='file' accept='image/*' hidden onchange='preview(event)'><img id='prev'></label></div><label>Title*<input id='title' required></label><label>Artist<input id='artist'></label><label>Year<input id='year'></label><label>Medium<input id='medium'></label><label>Dimensions<input id='size'></label><label>Edition<input id='edition'></label><label>Current valuation (₹)<input id='value' type='number'></label><label>Purchase price (₹)<input id='price' type='number'></label><label>Collector<select id='collector'></select></label><label>Status<select id='status'><option>Available</option><option>Sold</option><option>Reserved</option></select></label><label>Provenance<input id='provenance'></label><label>Certificate / Documentation
 <input id="certificate" type="file" accept="image/*">
 </label>
 
@@ -1367,60 +1489,189 @@ async function loadArtworks(){
   }
 
 } /* =========================
-   LOGIN
+   ACCOUNT / PERMISSIONS
 ========================= */
 
-async function checkLogin(){
+const ANANYA_ID =
+  '91121c62-7b6f-4973-943b-39a7f93a5dfe';
 
-  const {
-    data: { session }
-  } = await supabaseClient.auth.getSession();
+const MAAM_ID =
+  'fd7e42c6-efed-4a3d-b84c-bad1127b3894';
 
-  if(session){
-    console.log('Already logged in:', session.user.email);
-    return true;
+const FRIEND_ID =
+  '7f6e08db-7265-40bb-bb4b-0aab762c4037';
+
+let currentUser = null;
+
+
+/* =========================
+   CHECK EDIT PERMISSION
+========================= */
+
+function canEdit(){
+
+  if(!currentUser) return false;
+
+  return currentUser.id === ANANYA_ID ||
+         currentUser.id === FRIEND_ID;
+}
+
+
+/* =========================
+   UPDATE ACCOUNT DISPLAY
+========================= */
+
+function updateAccountDisplay(){
+
+  const el =
+    $('currentUserEmail');
+
+  if(!el) return;
+
+  if(currentUser){
+
+    el.textContent =
+      currentUser.email || '';
+
+  }else{
+
+    el.textContent =
+      'Not logged in';
+
   }
+}
 
-  const email = prompt('Enter your email:');
 
-  if(!email){
-    alert('Login required.');
-    return false;
-  }
+/* =========================
+   SHOW / HIDE ADD BUTTONS
+========================= */
 
-  const password = prompt('Enter your password:');
+function updatePermissions(){
 
-  if(!password){
-    alert('Login required.');
-    return false;
-  }
+  const editable =
+    canEdit();
+
+  document
+    .querySelectorAll(
+      '[onclick="openArt()"]'
+    )
+    .forEach(button => {
+
+      button.style.display =
+        editable ? '' : 'none';
+
+    });
+}
+
+
+/* =========================
+   LOGIN FORM
+========================= */
+
+async function loginFromForm(e){
+
+  e.preventDefault();
+
+  const email =
+    $('loginEmail')
+      .value
+      .trim();
+
+  const password =
+    $('loginPassword')
+      .value;
+
+  $('loginMessage')
+    .textContent =
+      'Logging in...';
 
   const {
     data,
     error
-  } = await supabaseClient.auth.signInWithPassword({
-    email: email.trim(),
-    password: password
-  });
+  } =
+    await supabaseClient.auth
+      .signInWithPassword({
+        email,
+        password
+      });
 
   if(error){
 
-    console.error('LOGIN ERROR:', error);
-
-    alert(
-      'Login failed:\n\n' +
-      error.message
+    console.error(
+      'LOGIN ERROR:',
+      error
     );
 
-    return false;
+    $('loginMessage')
+      .textContent =
+      'Login failed: ' +
+      error.message;
+
+    return;
   }
+
+  currentUser =
+    data.user;
 
   console.log(
     'LOGIN SUCCESS:',
-    data.user.email
+    currentUser.email
   );
 
-  return true;
+  $('loginEmail').value = '';
+  $('loginPassword').value = '';
+  $('loginMessage').textContent = '';
+
+  closeM('loginModal');
+
+  updateAccountDisplay();
+  updatePermissions();
+
+  await loadArtworks();
+
+  render();
+}
+
+
+/* =========================
+   SHOW LOGIN
+========================= */
+
+function showLogin(){
+
+  $('loginMessage')
+    .textContent = '';
+
+  $('loginModal')
+    .classList
+    .add('show');
+
+}
+
+
+/* =========================
+   LOGIN TO OTHER ACCOUNT
+========================= */
+
+async function switchAccount(){
+
+  const confirmed =
+    confirm(
+      'Do you want to log out and login to another account?'
+    );
+
+  if(!confirmed) return;
+
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+
+  db.artworks = [];
+
+  updateAccountDisplay();
+  updatePermissions();
+
+  showLogin();
 }
 
 
@@ -1430,28 +1681,44 @@ async function checkLogin(){
 
 async function startApp(){
 
-  console.log('START APP');
-
-  const loggedIn =
-    await checkLogin();
-
   console.log(
-    'LOGIN RESULT:',
-    loggedIn
+    'START APP'
   );
 
-  if(!loggedIn){
+  const {
+    data: {
+      session
+    }
+  } =
+    await supabaseClient
+      .auth
+      .getSession();
 
-    document.body.innerHTML =
-      '<div style="padding:50px;text-align:center;font-family:Arial">' +
-      '<h2>Login required</h2>' +
-      '<p>Please refresh the page and log in.</p>' +
-      '</div>';
+  if(!session){
+
+    console.log(
+      'No active session'
+    );
+
+    showLogin();
 
     return;
   }
 
-  console.log('Loading artworks...');
+  currentUser =
+    session.user;
+
+  console.log(
+    'Already logged in:',
+    currentUser.email
+  );
+
+  updateAccountDisplay();
+  updatePermissions();
+
+  console.log(
+    'Loading artworks...'
+  );
 
   await loadArtworks();
 
@@ -1461,10 +1728,7 @@ async function startApp(){
   );
 
   render();
-
 }
-
-startApp();
   /* =========================
    PASSWORD RECOVERY
 ========================= */
@@ -1810,5 +2074,6 @@ function toggleMobileMenu(){
 
 }
 
+startApp();
 </script></body></html>
   
