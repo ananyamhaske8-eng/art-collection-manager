@@ -274,8 +274,9 @@ let imageUrl =
 
   id: artworkId,
 
-  title: $('title').value,
+  user_id: (await supabaseClient.auth.getUser()).data.user.id,
 
+  title: $('title').value,
   artist: $('artist').value,
 
   year: $('year').value,
