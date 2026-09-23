@@ -103,11 +103,7 @@ const SUPABASE_KEY = "sb_publishable_6dGd0lonnFTXRE7_5Wl2Xw_SjmGAulx";
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
-);window.addEventListener('load', function(){
-
-  alert('Art Collection Manager loaded');
-
-});
+);
 const K = 'art_manager_v2';
 
 const db = JSON.parse(
@@ -1376,21 +1372,23 @@ async function loadArtworks(){
 
 async function checkLogin(){
 
-  // Clear any old login session
-  await supabaseClient.auth.signOut();
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
 
-  const email = prompt(
-    'Enter your email:'
-  );
+  if(session){
+    console.log('Already logged in:', session.user.email);
+    return true;
+  }
+
+  const email = prompt('Enter your email:');
 
   if(!email){
     alert('Login required.');
     return false;
   }
 
-  const password = prompt(
-    'Enter your password:'
-  );
+  const password = prompt('Enter your password:');
 
   if(!password){
     alert('Login required.');
@@ -1400,18 +1398,14 @@ async function checkLogin(){
   const {
     data,
     error
-  } =
-    await supabaseClient.auth.signInWithPassword({
-      email: email.trim(),
-      password: password
-    });
+  } = await supabaseClient.auth.signInWithPassword({
+    email: email.trim(),
+    password: password
+  });
 
   if(error){
 
-    console.error(
-      'LOGIN ERROR:',
-      error
-    );
+    console.error('LOGIN ERROR:', error);
 
     alert(
       'Login failed:\n\n' +
@@ -1422,8 +1416,8 @@ async function checkLogin(){
   }
 
   console.log(
-    'Logged in user:',
-    data.user
+    'LOGIN SUCCESS:',
+    data.user.email
   );
 
   return true;
@@ -1436,8 +1430,15 @@ async function checkLogin(){
 
 async function startApp(){
 
+  console.log('START APP');
+
   const loggedIn =
     await checkLogin();
+
+  console.log(
+    'LOGIN RESULT:',
+    loggedIn
+  );
 
   if(!loggedIn){
 
@@ -1450,30 +1451,16 @@ async function startApp(){
     return;
   }
 
-  try{
+  console.log('Loading artworks...');
 
-    await loadArtworks();
+  await loadArtworks();
 
-    render();
+  console.log(
+    'ARTWORKS LOADED:',
+    db.artworks.length
+  );
 
-    console.log(
-      'FINAL ARTWORK COUNT:',
-      db.artworks.length
-    );
-
-  }catch(error){
-
-    console.error(
-      'STARTUP ERROR:',
-      error
-    );
-
-    alert(
-      'Could not load artworks:\n\n' +
-      error.message
-    );
-
-  }
+  render();
 
 }
 
