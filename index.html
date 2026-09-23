@@ -101,44 +101,9 @@
   </div>
 
   <nav>
-  <div id="accountBox" style="
-    background:#33322d;
-    padding:12px;
-    border-radius:8px;
-    margin:0 0 20px;
-    font-size:11px;
-  ">
-    <div style="color:#999;text-transform:uppercase;letter-spacing:1px">
-      Logged in as
-    </div>
+ 
 
-    <div id="currentUserEmail" style="
-      margin-top:5px;
-      color:#fff;
-      word-break:break-word;
-    ">
-      Loading...
-    </div>
-
-    <button
-      onclick="switchAccount()"
-      style="
-        width:100%;
-        margin-top:10px;
-        padding:9px;
-        border:1px solid #666;
-        border-radius:6px;
-        background:#44433e;
-        color:#fff;
-        cursor:pointer;
-        font-size:11px;
-      "
-    >
-      🔄 Login to Other Account
-    </button>
-  </div>
-
-  <nav><button class='active' onclick="show('dashboard',this)"><span>Dashboard</span></button><button onclick="show('artworks',this)"><span>Artworks</span></button><button onclick="show('collectors',this)"><span>Collectors</span></button><button onclick="show('artists',this)"><span>Artists</span></button><button onclick="show('reports',this)"><span>Reports</span></button></nav></aside><main>
+<button class='active' onclick="show('dashboard',this)"><span>Dashboard</span></button><button onclick="show('artworks',this)"><span>Artworks</span></button><button onclick="show('collectors',this)"><span>Collectors</span></button><button onclick="show('artists',this)"><span>Artists</span></button><button onclick="show('reports',this)"><span>Reports</span></button></nav></aside><main>
 <section id='dashboard' class='page active'><div class='top'><div><div class='eyebrow'>Collection office</div><div class='title'>Dashboard</div><div class='sub'>Manage your paintings and collectors.</div></div><button class='btn' onclick='openArt()'>+ Add artwork</button></div><div class='stats'><div class='stat'><label>Artworks</label><b id='nArt'>0</b></div><div class='stat'><label>Collectors</label><b id='nCol'>0</b></div><div class='stat'><label>Artists</label><b id='nArtist'>0</b></div><div class='stat'><label>Collection value</label><b id='nVal'>₹0</b></div></div><div class='panel'><h2 style='font:20px Georgia'>Recent artworks</h2><div id='recent' class='grid'></div></div></section>
 <section id='artworks' class='page'><div class='top'><div><div class='eyebrow'>Visual catalogue</div><div class='title'>Artworks</div><div class='sub'>Click any artwork to see its complete record.</div></div><button class='btn' onclick='openArt()'>+ Add artwork</button></div><div class='toolbar'><input id='search' class='search' placeholder='Search title, artist or collector' oninput='render()'><select id='filter' onchange='render()'><option value=''>All status</option><option>Available</option><option>Sold</option><option>Reserved</option></select></div><div id='arts' class='grid'></div></section>
 <section id='collectors' class='page'><div class='top'><div><div class='eyebrow'>People</div><div class='title'>Collectors</div></div><button class='btn' onclick='openCol()'>+ Add collector</button></div><div class='panel'><table class='table'><thead><tr><th>Collector</th><th>Contact</th><th>Works</th><th>Value</th></tr></thead><tbody id='cols'></tbody></table></div></section>
