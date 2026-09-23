@@ -1372,47 +1372,63 @@ async function loadArtworks(){
 
 async function checkLogin(){
 
-  const {
-    data: { session }
-  } = await supabaseClient.auth.getSession();
+  // Clear any old login session
+  await supabaseClient.auth.signOut();
 
-  if(session){
-    return true;
-  }
-
-  const email = prompt('Enter your email:');
+  const email = prompt(
+    'Enter your email:'
+  );
 
   if(!email){
     alert('Login required.');
     return false;
   }
 
-  const password = prompt('Enter your password:');
+  const password = prompt(
+    'Enter your password:'
+  );
 
   if(!password){
     alert('Login required.');
     return false;
   }
 
-  const { error } =
+  const {
+    data,
+    error
+  } =
     await supabaseClient.auth.signInWithPassword({
-      email: email,
+      email: email.trim(),
       password: password
     });
 
   if(error){
 
+    console.error(
+      'LOGIN ERROR:',
+      error
+    );
+
     alert(
-      'Login failed: ' +
+      'Login failed:\n\n' +
       error.message
     );
 
     return false;
   }
 
+  console.log(
+    'Logged in user:',
+    data.user
+  );
+
   return true;
 }
-/* START APP */
+
+
+/* =========================
+   START APP
+========================= */
 
 async function startApp(){
 
@@ -1430,20 +1446,30 @@ async function startApp(){
     return;
   }
 
-  try {
+  try{
 
     await loadArtworks();
 
-  } catch(error) {
+    render();
+
+    console.log(
+      'FINAL ARTWORK COUNT:',
+      db.artworks.length
+    );
+
+  }catch(error){
 
     console.error(
-      'Startup error:',
+      'STARTUP ERROR:',
       error
     );
 
-  }
+    alert(
+      'Could not load artworks:\n\n' +
+      error.message
+    );
 
-  render();
+  }
 
 }
 
