@@ -1366,10 +1366,69 @@ async function loadArtworks(){
 
   }
 
+} /* =========================
+   LOGIN
+========================= */
+
+async function checkLogin(){
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if(session){
+    return true;
+  }
+
+  const email = prompt('Enter your email:');
+
+  if(!email){
+    alert('Login required.');
+    return false;
+  }
+
+  const password = prompt('Enter your password:');
+
+  if(!password){
+    alert('Login required.');
+    return false;
+  }
+
+  const { error } =
+    await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+  if(error){
+
+    alert(
+      'Login failed: ' +
+      error.message
+    );
+
+    return false;
+  }
+
+  return true;
 }
 /* START APP */
 
 async function startApp(){
+
+  const loggedIn =
+    await checkLogin();
+
+  if(!loggedIn){
+
+    document.body.innerHTML =
+      '<div style="padding:50px;text-align:center;font-family:Arial">' +
+      '<h2>Login required</h2>' +
+      '<p>Please refresh the page and log in.</p>' +
+      '</div>';
+
+    return;
+  }
 
   try {
 
@@ -1377,7 +1436,10 @@ async function startApp(){
 
   } catch(error) {
 
-    console.error('Startup error:', error);
+    console.error(
+      'Startup error:',
+      error
+    );
 
   }
 
