@@ -103,7 +103,11 @@ const SUPABASE_KEY = "sb_publishable_6dGd0lonnFTXRE7_5Wl2Xw_SjmGAulx";
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
-);
+);window.addEventListener('load', function(){
+
+  alert('Art Collection Manager loaded');
+
+});
 const K = 'art_manager_v2';
 
 const db = JSON.parse(
